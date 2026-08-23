@@ -1,0 +1,13 @@
+# macOS
+.DS_Store
+
+# Build artifacts & binaries
+build/
+bin/
+*.o
+*.out
+allocator_test
+
+# IDEs
+.vscode/
+.idea/
