@@ -1,6 +1,7 @@
 #include <cassert> // Tripwire for test failures
 #include <iostream> // For outputting test results in terminal
 #include <cstdint> // Needed for uintptr_t (checking memory addresses)
+#include <stdexcept> // For throwing exceptions in case of critical errors
 #include "../include/Allocator.hpp" // Include the header for the Allocator class
 
 // Test 1: Basic allocation ensures we get a valid memory address
@@ -65,14 +66,20 @@ void test_all_bucket_sizes() {
     std::cout << "[PASS] test_all_bucket_sizes\n";
 }
 
-// Test 5: Zero-byte allocations should be handled safely
+// Test 5: Zero-byte allocations should throw an exception
 void test_zero_allocation() {
     Allocator my_allocator;
-    void* ptr = my_allocator.allocate(0);
+    bool caught_exception = false;
     
-    // In our design, asking for 0 bytes should safely return a null pointer.
-    assert(ptr == nullptr);
-    std::cout << "[PASS] test_zero_allocation\n";
+    try {
+        my_allocator.allocate(0);
+    } catch (const std::invalid_argument& e) {
+        caught_exception = true; // The exception was successfully caught!
+    }
+    
+    // Assert that the exception was actually thrown
+    assert(caught_exception == true);
+    std::cout << "[PASS] test_zero_allocation (Exception Thrown)\n";
 }
 
 // Test 6: Out of Memory (OOM) requests should not crash the system
