@@ -2,6 +2,7 @@
 #include <iostream> // For outputting test results in terminal
 #include <cstdint> // Needed for uintptr_t (checking memory addresses)
 #include <stdexcept> // For throwing exceptions in case of critical errors
+#include <new> // Required at the top of test file to recognize std::bad_alloc
 #include "../include/Allocator.hpp" // Include the header for the Allocator class
 
 // Test 1: Basic allocation ensures we get a valid memory address
@@ -82,16 +83,22 @@ void test_zero_allocation() {
     std::cout << "[PASS] test_zero_allocation (Exception Thrown)\n";
 }
 
-// Test 6: Out of Memory (OOM) requests should not crash the system
+// Test 6: Out of Memory (OOM) requests should safely throw std::bad_alloc
 void test_out_of_memory() {
     Allocator my_allocator;
+    bool caught_oom = false;
     
-    // Request 2 Gigabytes of memory (larger than our initial mmap pool)
-    size_t massive_request = 2000000000; 
-    void* ptr = my_allocator.allocate(massive_request);
+    try {
+        // Request an impossibly large amount of memory to force an OS mmap failure
+        // (static_cast<size_t>(-1) is the maximum possible integer size)
+        size_t massive_request = static_cast<size_t>(-1); 
+        my_allocator.allocate(massive_request);
+    } catch (const std::bad_alloc& e) {
+        caught_oom = true; // The exception was successfully caught!
+    }
     
-    assert(ptr == nullptr);
-    std::cout << "[PASS] test_out_of_memory\n";
+    assert(caught_oom == true);
+    std::cout << "[PASS] test_out_of_memory (Exception Thrown)\n";
 }
 
 // Test 7: Alignment ensures hardware compatibility

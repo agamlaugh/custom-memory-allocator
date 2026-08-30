@@ -14,6 +14,9 @@ private:
     
     // The total size of our massive pool (e.g., 1 Megabyte)
     size_t pool_size;
+
+    // The bookmark tracking how much of the pool we have carved up
+    size_t pool_offset; 
     
     // Our Slab Buckets! 
     // We have 8 buckets for sizes: 8, 16, 32, 64, 128, 256, 512, 1024
