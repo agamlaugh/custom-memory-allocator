@@ -1,4 +1,5 @@
 #pragma once
+#include <array>
 #include <cstddef> // Needed for size_t
 
 // The Intrusive Free List Node
@@ -21,7 +22,9 @@ private:
     // Our Slab Buckets! 
     // We have 8 buckets for sizes: 8, 16, 32, 64, 128, 256, 512, 1024
     // Each index holds a pointer to the first free block of that size.
-    FreeBlock* free_lists[8];
+    // FreeBlock* free_lists[8];
+
+    std::array<FreeBlock*, 8> free_lists{}; 
 
     // A helper function to figure out which bucket index a requested size belongs to
     int get_bucket_index(size_t size);

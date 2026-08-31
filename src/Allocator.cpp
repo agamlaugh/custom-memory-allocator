@@ -28,9 +28,9 @@ Allocator::Allocator() {
     }
 
     // Set all 8 of our slab buckets to empty (nullptr) to start
-    for (int i = 0; i < 8; i++) {
-        free_lists[i] = nullptr;
-    }
+    // for (int i = 0; i < 8; i++) {
+    //     free_lists[i] = nullptr;
+    // }
 }
 
 // ---------------------------------------------------------
@@ -103,32 +103,32 @@ void* Allocator::allocate(size_t size) {
             throw std::bad_alloc(); // NEW: Throw exception if our 1MB pool is full
         }
 
-        char* slab_start = (char*)memory_pool + pool_offset;
+        char* slab_start = static_cast<char*>(memory_pool) + pool_offset;
         pool_offset = pool_offset + carve_size; 
         
         //this can be optimised with bitshifting or a simple equation
-        size_t block_size = 8;
-        for (int i = 0; i < index; i++) {
-            block_size = block_size * 2; 
-        }
+        // size_t block_size = 8;
+        // for (int i = 0; i < index; i++) {
+        //     block_size = block_size * 2; 
+        // }
 
         //alternative bitshift method
         // Left-shift 8 by the index amount (e.g., if index is 2, 8 << 2 = 32)
-        // size_t block_size = 8 << index;
+        size_t block_size = 8 << index;
 
         int num_blocks = carve_size / block_size;
         for (int i = 0; i < num_blocks - 1; i++) {
-            FreeBlock* current = (FreeBlock*)(slab_start + (i * block_size));
-            FreeBlock* next_block = (FreeBlock*)(slab_start + ((i + 1) * block_size));
+            FreeBlock* current = reinterpret_cast<FreeBlock*>(slab_start + (i * block_size));
+            FreeBlock* next_block = reinterpret_cast<FreeBlock*>(slab_start + ((i + 1) * block_size));
 
             current->next = next_block; 
             // (*current).next = next_block; same as line above but broken down, dereference and accessing the next pointer is the arrow
         }
         
-        FreeBlock* last = (FreeBlock*)(slab_start + ((num_blocks - 1) * block_size));
+        FreeBlock* last = reinterpret_cast<FreeBlock*>(slab_start + ((num_blocks - 1) * block_size));
         last->next = nullptr;
 
-        free_lists[index] = (FreeBlock*)slab_start;
+        free_lists[index] = reinterpret_cast<FreeBlock*>(slab_start);
     }
 
     FreeBlock* block_to_return = free_lists[index];

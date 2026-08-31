@@ -3,6 +3,7 @@
 #include <cstdint> // Needed for uintptr_t (checking memory addresses)
 #include <stdexcept> // For throwing exceptions in case of critical errors
 #include <new> // Required at the top of test file to recognize std::bad_alloc
+#include <array>
 #include "../include/Allocator.hpp" // Include the header for the Allocator class
 
 // Test 1: Basic allocation ensures we get a valid memory address
@@ -50,7 +51,7 @@ void test_deallocation_recycling() {
 // Test 4: Iterate through all powers of two to ensure every bucket works
 void test_all_bucket_sizes() {
     Allocator my_allocator;
-    void* pointers[8]; 
+    std::array<void*, 8> pointers{}; 
     
     size_t size = 8;
     for (int i = 0; i < 8; i++) {
@@ -117,7 +118,7 @@ void test_alignment() {
 // Test 8: Stress testing the intrusive list under heavy load
 void test_stress_and_stability() {
     Allocator my_allocator;
-    void* pointers[1000]; // An array to hold 1,000 memory addresses
+    std::array<void*, 1000> pointers{}; // An array to hold 1,000 memory addresses
     
     // Phase 1: Allocate 1,000 blocks of 32 bytes
     for (int i = 0; i < 1000; i++) {
