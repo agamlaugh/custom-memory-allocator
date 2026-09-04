@@ -38,7 +38,7 @@ void test_deallocation_recycling() {
     assert(ptr1 != nullptr);
     
     // Deallocate the first block
-    my_allocator.deallocate(ptr1);
+    my_allocator.deallocate(ptr1, 16); // Pass the 16 bytes
     
     // Allocate again; a proper slab allocator should immediately recycle and hand back the exact same address
     void* ptr2 = my_allocator.allocate(16);
@@ -61,10 +61,13 @@ void test_all_bucket_sizes() {
         // Multiply size by 2 for the next loop (8 -> 16 -> 32 -> 64...)
         size = size * 2; 
     }
-    
+
     for (int i = 0; i < 8; i++) {
-        my_allocator.deallocate(pointers[i]);
+        // Calculate the size for this specific index to pass to deallocate
+        size_t dealloc_size = 8 << i; 
+        my_allocator.deallocate(pointers[i], dealloc_size);
     }
+
     std::cout << "[PASS] test_all_bucket_sizes\n";
 }
 
@@ -128,7 +131,7 @@ void test_stress_and_stability() {
     
     // Phase 2: Deallocate all 1,000 blocks back to the free list
     for (int i = 0; i < 1000; i++) {
-        my_allocator.deallocate(pointers[i]);
+        my_allocator.deallocate(pointers[i], 32); // Pass the 32 bytes
     }
     
     // Phase 3: Allocate one more time to ensure the list isn't broken
@@ -146,7 +149,7 @@ void test_large_allocation() {
     void* large_ptr = my_allocator.allocate(4096);
     assert(large_ptr != nullptr);
     
-    my_allocator.deallocate(large_ptr);
+    my_allocator.deallocate(large_ptr, 4096); // Pass the 4096 bytes
     
     std::cout << "[PASS] test_large_allocation\n";
 }

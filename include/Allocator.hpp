@@ -38,5 +38,7 @@ public:
 
     // The core functions the user will call
     void* allocate(size_t size);
-    void deallocate(void* ptr);
+    
+    void deallocate(void* ptr, size_t size); // NEW: Sized Deallocation!
+    // old version: void deallocate(void* ptr);
 };

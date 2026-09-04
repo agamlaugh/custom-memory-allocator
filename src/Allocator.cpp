@@ -77,6 +77,13 @@ void* Allocator::allocate(size_t size) {
     // The Large Object Bypass
     if (index == -1) {
         size_t total_size = size + 8;
+
+        // NEW: Integer Overflow Check
+        // If adding 8 caused the integer to wrap around, it will be smaller than the original size.
+        if (total_size < size) {
+            throw std::bad_alloc();
+        }
+
         void* large_block = mmap(nullptr, total_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
         
         if (large_block == MAP_FAILED) {
@@ -134,4 +141,40 @@ void* Allocator::allocate(size_t size) {
     FreeBlock* block_to_return = free_lists[index];
     free_lists[index] = block_to_return->next; 
     return (void*)block_to_return;
+}
+
+// ---------------------------------------------------------
+// DEALLOCATE: Return memory to the correct bucket (LIFO Push)
+// ---------------------------------------------------------
+void Allocator::deallocate(void* ptr, size_t size) {
+    // 1. Safety first: In standard C++, freeing a nullptr does nothing.
+    if (ptr == nullptr) {
+        return;
+    }
+
+    // 2. Figure out which bucket this block belongs to
+    int index = get_bucket_index(size);
+
+    // 3. The Large Object Bypass
+    if (index == -1) {
+        // Shift the pointer back 8 bytes to uncover our hidden metadata
+        char* original_start = static_cast<char*>(ptr) - 8;
+        size_t* header = reinterpret_cast<size_t*>(original_start);
+        
+        // Read the exact size we gave to mmap, and give it back to the OS
+        size_t total_size = *header;
+        munmap(header, total_size);
+        return;
+    }
+
+    // 4. O(1) Slab Recycling (LIFO Push)
+    // Force the raw pointer to put on the FreeBlock costume
+    FreeBlock* block_to_free = reinterpret_cast<FreeBlock*>(ptr);
+
+    // Wire this block to point to whatever is currently at the front of the line
+    // mental note that -> is the dereference operator, so block_to_free->next is equivalent to (*block_to_free).next
+    block_to_free->next = free_lists[index];
+
+    // Officially make this block the brand new front of the line
+    free_lists[index] = block_to_free;
 }
