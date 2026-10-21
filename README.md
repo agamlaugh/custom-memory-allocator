@@ -50,5 +50,12 @@ g++ -std=c++17 src/Allocator.cpp src/main.cpp -o sandbox
 ./sandbox
 ```
 
+**4. Compile and run the Benchmarks (requires Google Benchmark, e.g. `brew install google-benchmark`)**
+```bash
+P=$(brew --prefix google-benchmark)
+g++ -std=c++17 -O2 -I$P/include src/Allocator.cpp benchmarks/bench_allocator.cpp -L$P/lib -lbenchmark -lpthread -o bench
+./bench
+```
+
 ## Author
 **Agam Cohen**
