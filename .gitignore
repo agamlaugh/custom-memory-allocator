@@ -11,3 +11,9 @@ allocator_test
 # IDEs
 .vscode/
 .idea/
+
+# Compiled executables
+sandbox
+bench
+allocator_test
+*.dSYM/
